@@ -1,5 +1,5 @@
 const timeInterval = 200;
-const size = {x: 18, y:10};// x = 1.75*y (approx for my screen)
+const size = {x: 36, y:20};// x = 1.75*y (approx for my screen)
 
 var count=0;
 function Snake(){
