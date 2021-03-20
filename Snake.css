@@ -1,6 +1,7 @@
 :root{
     --sizeX: 18;
     --sizeY: 10;
+    --fontSize: 3em;
 }
 body{
     margin: 0;
@@ -23,7 +24,7 @@ body{
 }
 #mainSec div{
     border: 1px solid #a5e47b;
-    font-size: 3em;
+    font-size: var(--fontSize);
     font-weight: bold;
     text-align: center;
 }
