@@ -32,37 +32,6 @@ function Snake(){
         for(let i=0;i< size.x * size.y * 1/100; i++)//percentage of multiple food
             this.generateFood();
     }
-    this.playOld = function(){
-        ar = this.arrow;
-        if(this.gameOver){
-            return;
-        }
-        //this.arrow = ar;
-        //fun(this.arrow);
-        switch(ar){
-            case "r": this.headPosition.x++;break;
-            case "l": this.headPosition.x--;break;
-            case "u": this.headPosition.y--;break;
-            case "d": this.headPosition.y++;break;
-        }
-        this.headPosition.x = this.validX(this.headPosition.x);
-        this.headPosition.y = this.validY(this.headPosition.y);
-        
-        if(this.grid[this.headPosition.x][this.headPosition.y] == 0){
-            this.grid[this.headPosition.x][this.headPosition.y] = -this.snakelength;
-            //fun("play\n"+this.headPosition.x+","+this.headPosition.y);
-            this.moveBody(this.headPosition.x,this.headPosition.y);
-        }
-        else if(this.grid[this.headPosition.x][this.headPosition.y] == 1){
-            this.snakelength++;
-            this.grid[this.headPosition.x][this.headPosition.y] = -this.snakelength;
-            this.generateFood();
-        }
-        else if(this.grid[this.headPosition.x][this.headPosition.y] != -1)
-            this.endGame();
-        
-        //this.playedMove = true;
-    }
     this.play = function(){
         let ar = this.arrow;
         if(this.gameOver){
@@ -96,21 +65,6 @@ function Snake(){
             this.endGame();
         
         //this.playedMove = true;
-    }
-    this.moveBodyOld = function(x,y){
-        while(this.grid[x][y] < 0){
-            let found = false;
-            for(let i=0;i<3 && !found;i++)
-                for(let j=0;j<3;j++)
-                    if(this.grid[this.validX(x-1+i)][this.validY(y-1+j)] == this.grid[x][y] && !(i==1 && j==1)){
-                        x = this.validX(x-1+i);
-                        y = this.validY(y-1+j);
-                        //fun("in"+x+","+y);
-                        found=true;
-                        break;
-                    }
-            this.grid[x][y]++;
-        }
     }
     this.moveBody = function(){
         let ar  = this.grid[this.tailPosition.x][this.tailPosition.y];
