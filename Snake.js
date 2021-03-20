@@ -10,7 +10,7 @@ function Snake(){
     this.grid = Array2d(size.x,size.y);
     this.gameOver = true;
     this.maxScore = 0;
-    this.lastScore = 0
+    this.lastScore = 0;
     this.interval = "";
     this.playedMove = true;
 
