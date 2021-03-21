@@ -1,5 +1,5 @@
-let timeInterval = "";
-let speed = "";
+let timeInterval = 200;
+let speed = 5;
 const size = {x: 18, y:10};// x = 1.8*y (approx for my screen)
 
 var count=0;
