@@ -1,8 +1,14 @@
 let timeInterval = 200;
 let speed = 5;
-const size = {x: 18, y:10};// x = 1.8*y (approx for my screen)
+const size = {x: 18, y:10};//x = 1.8*y (approx for my screen)
 
+let foodPercentage = 2/100;                         //percentage of multiple food but they 
+                                                     //may overlap so the actusal max percentage
+                                                     //is around 50% and the number will dimminsh
+                                                     //with every turn
+let food = parseInt(size.x * size.y * foodPercentage);
 var count=0;
+
 function Snake(){
     this.snakelength = 1;
     this.arrow = "r";
@@ -30,7 +36,7 @@ function Snake(){
         this.grid = iniArray2d(this.grid,0);
         this.gameOver = true;
 
-        for(let i=0;i< size.x * size.y * 1/100; i++)//percentage of multiple food
+        for(let i=0;i< food; i++)
             this.generateFood();
     }
     this.play = function(){
@@ -129,7 +135,7 @@ function SnakeGUI(){
     this.cells = "";
     this.game = new Snake();
     this.buttons = {r: "", l: "", u: "", d: "", reset: ""};
-    this.input = {speed: ""};
+    this.input = {speed: "" ,food:""};
     this.scoreBoard = {highest: "", last: "", now: ""};
     this.refresh = "";
 
@@ -154,13 +160,20 @@ function SnakeGUI(){
         htmlCreator("div", scoreSection, "", "", "Score");
         this.scoreBoard.now = htmlCreator("div", scoreSection);
 
-        htmlCreator("p", controlsSection, "", "", "Speed:");
+        htmlCreator("label", controlsSection, "", "", "food:");
+        this.input.food = htmlCreator("input", controlsSection, "","inputNumber");
+        this.input.food.type = "number";
+        this.input.food.min = "1";
+        this.input.food.max = parseInt(size.x * size.y * 0.6);
+        this.input.food.value = food;
+        this.input.food.title = food;
+        htmlCreator("label", controlsSection, "", "", "Speed:");
         this.input.speed = htmlCreator("input", controlsSection, "speedSlider","inputSlider");
         this.input.speed.type = "range";
         this.input.speed.min = "1";
         this.input.speed.max = "20";
-        this.input.speed.value = "5";
-        this.input.speed.title = "5";
+        this.input.speed.value = speed;
+        this.input.speed.title = speed;
         
         this.buttons.u = htmlCreator("button", controlsSection, "upButton", "button", "&uarr;");
         this.buttons.l = htmlCreator("button", controlsSection, "leftButton", "button", "&larr;");
@@ -182,6 +195,11 @@ function SnakeGUI(){
         this.buttons.u.addEventListener("click",function(){self.game.changeDirection("u");self.display();});
         this.buttons.d.addEventListener("click",function(){self.game.changeDirection("d");self.display();});
         
+        this.input.food.addEventListener("change",function(){
+            this.title = this.value + "\nreset game to change food percentage";
+            foodPercentage = this.value/100;
+        });
+        this.input.food.addEventListener("click",function(){this.title = this.value;});
         this.input.speed.addEventListener("change",function(){
             this.title = this.value + "\nreset game to change speed";
             timeInterval = parseInt(1000/this.value);
