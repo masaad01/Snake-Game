@@ -28,15 +28,6 @@ body{
     font-weight: bold;
     text-align: center;
 }
-#controlsSec{
-    display: grid;
-    grid-template: repeat(5 , 1fr) / repeat(4 , 1fr);
-}
-#controlsSec p{
-    font-size: 1.5em;
-    text-align: center;
-    margin: 0;
-}
 #scoreSec{
     font-size: 2.5em;
     font-weight: bold;
@@ -44,11 +35,29 @@ body{
     display: grid;
     grid-template-rows: repeat(6 , 1fr);
 }
+#controlsSec{
+    display: grid;
+    grid-template: repeat(6 , 1fr) / repeat(4 , 1fr);
+}
+#controlsSec label{
+    font-size: 1.5em;
+    text-align: center;
+    margin: auto;
+
+    grid-column: 1 / 2;
+}
 .button{
     font-size: 1.8em;
 }
 .inputSlider{
     grid-column: 2 / 5;
+}
+.inputNumber{
+    width: 5vw;
+    margin: 0.5vw;
+    grid-column: 2 / 3;
+
+    font-size: 1.5em;
 }
 #rightButton{
     grid-column: 3 / 5;
@@ -67,7 +76,4 @@ body{
 }
 .fullCell{
     background-color: #bb2121;
-}
-label{
-    font-size: 1.8em;
 }
