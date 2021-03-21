@@ -4,6 +4,7 @@ const size = {x: 18, y:10};// x = 1.8*y (approx for my screen)
 //test commit first
 //tests for accesc
 //branch hamza2
+
 var count=0;
 function Snake(){
     this.snakelength = 1;
