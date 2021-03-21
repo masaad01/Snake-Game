@@ -32,6 +32,11 @@ body{
     display: grid;
     grid-template: repeat(5 , 1fr) / repeat(4 , 1fr);
 }
+#controlsSec p{
+    font-size: 1.5em;
+    text-align: center;
+    margin: 0;
+}
 #scoreSec{
     font-size: 2.5em;
     font-weight: bold;
@@ -42,7 +47,7 @@ body{
 .button{
     font-size: 1.8em;
 }
-#sizeSlider{
+.inputSlider{
     grid-column: 2 / 5;
 }
 #rightButton{

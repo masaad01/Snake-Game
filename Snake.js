@@ -1,4 +1,5 @@
-const timeInterval = 200;
+let timeInterval = "";
+let speed = "";
 const size = {x: 18, y:10};// x = 1.8*y (approx for my screen)
 
 var count=0;
@@ -119,8 +120,8 @@ function Snake(){
     }
     this.endGame = function(){
         this.gameOver = true;
-        this.maxScore = Math.max(this.maxScore, this.snakelength);
-        this.lastScore = this.snakelength;
+        this.lastScore = this.snakelength * speed;
+        this.maxScore = Math.max(this.maxScore, this.lastScore);//score = length * speed
     }
 }
 
@@ -128,6 +129,7 @@ function SnakeGUI(){
     this.cells = "";
     this.game = new Snake();
     this.buttons = {r: "", l: "", u: "", d: "", reset: ""};
+    this.input = {speed: ""};
     this.scoreBoard = {highest: "", last: "", now: ""};
     this.refresh = "";
 
@@ -151,6 +153,14 @@ function SnakeGUI(){
         this.scoreBoard.last = htmlCreator("div", scoreSection);
         htmlCreator("div", scoreSection, "", "", "Score");
         this.scoreBoard.now = htmlCreator("div", scoreSection);
+
+        htmlCreator("p", controlsSection, "", "", "Speed:");
+        this.input.speed = htmlCreator("input", controlsSection, "speedSlider","inputSlider");
+        this.input.speed.type = "range";
+        this.input.speed.min = "1";
+        this.input.speed.max = "20";
+        this.input.speed.value = "5";
+        this.input.speed.title = "5";
         
         this.buttons.u = htmlCreator("button", controlsSection, "upButton", "button", "&uarr;");
         this.buttons.l = htmlCreator("button", controlsSection, "leftButton", "button", "&larr;");
@@ -167,13 +177,19 @@ function SnakeGUI(){
     }
     this.addEvents = function(){
         var self = this;
-        this.buttons.r.addEventListener("click",function(){self.game.changeDirection("r");self.display();}, false);
-        this.buttons.l.addEventListener("click",function(){self.game.changeDirection("l");self.display();}, false);
-        this.buttons.u.addEventListener("click",function(){self.game.changeDirection("u");self.display();}, false);
-        this.buttons.d.addEventListener("click",function(){self.game.changeDirection("d");self.display();}, false);
+        this.buttons.r.addEventListener("click",function(){self.game.changeDirection("r");self.display();});
+        this.buttons.l.addEventListener("click",function(){self.game.changeDirection("l");self.display();});
+        this.buttons.u.addEventListener("click",function(){self.game.changeDirection("u");self.display();});
+        this.buttons.d.addEventListener("click",function(){self.game.changeDirection("d");self.display();});
+        
+        this.input.speed.addEventListener("change",function(){
+            this.title = this.value + "\nreset game to change speed";
+            timeInterval = parseInt(1000/this.value);
+        });
+        this.input.speed.addEventListener("click",function(){this.title = this.value;});
         
         document.addEventListener("keydown",function(event){
-            //if(!event.repeat)
+            if(!event.repeat)
                 switch(event.code){
                     case "ArrowRight":self.game.changeDirection("r");self.display();break;
                     case "ArrowLeft" :self.game.changeDirection("l");self.display();break;
@@ -195,7 +211,7 @@ function SnakeGUI(){
                 self.display();
                 self.refresh = setInterval(self.display.bind(self),timeInterval);
             }
-        }, false);
+        });
     }
     this.display = function(){
         for(let i=0;i<size.x;i++)
@@ -220,7 +236,7 @@ function SnakeGUI(){
         this.cells[this.game.tailPosition.x][this.game.tailPosition.y].innerHTML = ".";
         this.cells[this.game.headPosition.x][this.game.headPosition.y].style.backgroundColor = "green";
         this.cells[this.game.headPosition.x][this.game.headPosition.y].innerHTML = "#";
-        this.scoreBoard.now.innerHTML = this.game.snakelength;
+        this.scoreBoard.now.innerHTML = this.game.snakelength * speed;//score = length * speed
 
         if(this.game.gameOver){
             alert("Game Over\n"+this.game.lastScore)
@@ -231,6 +247,7 @@ function SnakeGUI(){
         clearInterval(this.refresh);
         this.game.initialize();
 
+        speed = parseInt(1000/timeInterval);//TI = 1000/speed
         this.scoreBoard.highest.innerHTML = this.game.maxScore;
         this.scoreBoard.last.innerHTML = this.game.lastScore;
         this.scoreBoard.now.innerHTML = 0;
