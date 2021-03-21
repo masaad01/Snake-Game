@@ -9,6 +9,7 @@ let foodPercentage = 2/100;                         //percentage of multiple foo
 let food = parseInt(size.x * size.y * foodPercentage);
 var count=0;
 
+
 function Snake(){
     this.snakelength = 1;
     this.arrow = "r";
