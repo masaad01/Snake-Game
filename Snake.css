@@ -17,16 +17,11 @@ body{
     border: solid;
 }
 #mainSec{
+    border: 0px;
     grid-row: 1 / 3; 
-    
-    display: grid;
-    grid-template: repeat(var(--sizeY) , 1fr) / repeat(var(--sizeX), 1fr);
 }
-#mainSec div{
-    border: 1px solid #a5e47b;
-    font-size: var(--fontSize);
-    font-weight: bold;
-    text-align: center;
+canvas{
+    display: block;
 }
 #scoreSec{
     font-size: 2.5em;
