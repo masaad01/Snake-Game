@@ -1,12 +1,12 @@
 let timeInterval = 200;
 let speed = 5;
-const size = {x: 18, y:10};//x = 1.8*y (approx for my screen)
+const size = {x: undefined, y:20};//x = 1.75*y (approx for my screen) it is auto calculated
 
 let foodPercentage = 2/100;                         //percentage of multiple food but they 
                                                      //may overlap so the actusal max percentage
                                                      //is around 50% and the number will dimminsh
                                                      //with every turn
-let food = parseInt(size.x * size.y * foodPercentage);
+let food = 1;                                        //food is auto calculated depending on foodPercentage
 var count=0;
 
 
@@ -15,7 +15,7 @@ function Snake(){
     this.arrow = "r";
     this.headPosition = "";
     this.tailPosition = "";
-    this.grid = Array2d(size.x,size.y);
+    this.grid = "";
     this.gameOver = true;
     this.maxScore = 0;
     this.lastScore = 0;
@@ -133,7 +133,10 @@ function Snake(){
 }
 
 function SnakeGUI(){
-    this.cells = "";
+    this.mainSection = "";
+    this.canvas = "";
+    this.ctx = "";
+    this.cellSize = 0;
     this.game = new Snake();
     this.buttons = {r: "", l: "", u: "", d: "", reset: ""};
     this.input = {speed: "" ,food:""};
@@ -142,6 +145,7 @@ function SnakeGUI(){
 
     this.start = function(){
         this.creatElements();
+        this.clearCanvas();
         this.addEvents();
         this.reset();
     }
@@ -150,7 +154,7 @@ function SnakeGUI(){
         body.innerHTML = "";
 
         var container = htmlCreator("div",body,"container","");
-        var mainSection = htmlCreator("div",container,"mainSec","view");
+        this.mainSection = htmlCreator("div",container,"mainSec","view");
         var scoreSection = htmlCreator("div",container,"scoreSec","view");
         var controlsSection = htmlCreator("div",container,"controlsSec","view");
 
@@ -182,12 +186,15 @@ function SnakeGUI(){
         this.buttons.d = htmlCreator("button", controlsSection, "downButton", "button", "&darr;");
         this.buttons.reset = htmlCreator("button", controlsSection, "resetButton", "button", "Begin");
         
-        this.setMapSize(size.x,size.y);
-        var c = Array2d(size.x,size.y);
-        for(var i=0;i<size.y;i++)
-            for(var j=0;j<size.x;j++)
-                c[j][i] = htmlCreator("div", mainSection,"","emptyCell");
-        this.cells = c;
+        this.canvas = htmlCreator("canvas" ,this.mainSection);
+        this.canvas.height = this.mainSection.offsetHeight ;
+        this.canvas.width = this.mainSection.offsetWidth;
+
+        this.cellSize = this.canvas.height / size.y;
+        size.x = Math.floor(this.canvas.width / this.cellSize);
+        food = Math.floor(size.x * size.y * foodPercentage);
+        
+        this.ctx = this.canvas.getContext("2d");
     }
     this.addEvents = function(){
         var self = this;
@@ -233,28 +240,27 @@ function SnakeGUI(){
         });
     }
     this.display = function(){
+        this.clearCanvas();
         for(let i=0;i<size.x;i++)
             for(let j=0;j<size.y;j++)
                 if(this.game.grid[i][j] == 1){
-                    this.cells[i][j].style.backgroundColor = "red";
-                    this.cells[i][j].innerHTML = "";
+                    this.drawCell(i,j,"red");
+                    console.log(i,j);
                 }
                 else if(this.game.grid[i][j] == 0){
-                    this.cells[i][j].style.backgroundColor = "white";
-                    this.cells[i][j].innerHTML = "";
                 }
                 else{
-                    this.cells[i][j].style.backgroundColor = "#45bb21";
-                    switch(this.game.grid[i][j]){
+                    this.drawCell(i,j,"#45bb21");
+                    /*switch(this.game.grid[i][j]){
                         case -1: this.cells[i][j].innerHTML = "&rarr;";break;
                         case -2: this.cells[i][j].innerHTML = "&larr;";break;
                         case -3: this.cells[i][j].innerHTML = "&uarr;";break;
                         case -4: this.cells[i][j].innerHTML = "&darr;";break;
-                    }
+                    }*/
                 }
-        this.cells[this.game.tailPosition.x][this.game.tailPosition.y].innerHTML = ".";
-        this.cells[this.game.headPosition.x][this.game.headPosition.y].style.backgroundColor = "green";
-        this.cells[this.game.headPosition.x][this.game.headPosition.y].innerHTML = "#";
+        //this.cells[this.game.tailPosition.x][this.game.tailPosition.y].innerHTML = ".";
+        this.drawCell(this.game.headPosition.x,this.game.headPosition.y,"green");
+        //this.cells[this.game.headPosition.x][this.game.headPosition.y].innerHTML = "#";
         this.scoreBoard.now.innerHTML = this.game.snakelength * speed;//score = length * speed
 
         if(this.game.gameOver){
@@ -273,11 +279,30 @@ function SnakeGUI(){
 
         this.buttons.reset.innerHTML = "Begin";
     }
-    this.setMapSize = function(x,y){
-        var root = document.querySelector(":root");
-        root.style.setProperty("--sizeX",x);
-        root.style.setProperty("--sizeY",y);
-        root.style.setProperty("--fontSize",(3*18/x) + "em");
+    this.clearCanvas = function(){
+        let space = (this.canvas.width - this.cellSize * size.x)/2;
+
+        this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+                
+        for(let i=0;i<size.y+1;i++){
+            this.ctx.beginPath();
+            this.ctx.moveTo(space+ 0, i * this.cellSize);
+            this.ctx.lineTo(space+ this.cellSize * size.x, i * this.cellSize);
+            this.ctx.stroke();
+        }
+        for(let i=0;i<size.x+1;i++){
+            this.ctx.beginPath();
+            this.ctx.moveTo(space+ i * this.cellSize,0);
+            this.ctx.lineTo(space+ i * this.cellSize,this.canvas.height);
+            this.ctx.stroke();
+        }
+
+    }
+    this.drawCell = function(x,y,color){
+        let c = this.cellSize;
+        let space = (this.canvas.width - this.cellSize * size.x)/2;
+        this.ctx.fillStyle = color;
+        this.ctx.fillRect(space+x*c,y*c,c,c);
     }
 }
 
