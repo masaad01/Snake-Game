@@ -6,7 +6,7 @@ let foodPercentage = 2/100;                         //percentage of multiple foo
                                                      //may overlap so the actusal max percentage
                                                      //is around 50% and the number will dimminsh
                                                      //with every turn
-let food = 1;
+let food = 1;                                        //food is auto calculated depending on foodPercentage
 var count=0;
 
 
