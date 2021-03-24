@@ -1,40 +1,36 @@
 let timeInterval = 200;
-let speed = 5;
-const size = {x: undefined, y:20};//x = 1.75*y (approx for my screen) it is auto calculated
+let speed = 5;   //auto calculated apon reload. speed = 1000/timeInterval
+const size = {x: undefined, y:5};//x = 1.75*y (approx for my screen) it is auto calculated
 
-let foodPercentage = 2/100;                         //percentage of multiple food but they 
-                                                     //may overlap so the actusal max percentage
+let foodPercentage = 1/100;                         //percentage of multiple food but they 
+                                                     //may overlap so the actual max percentage
                                                      //is around 50% and the number will dimminsh
                                                      //with every turn
-let food = 1;                                        //food is auto calculated depending on foodPercentage
+let food = 1;   //food is auto calculated depending on foodPercentage
 var count=0;
 
 
 function Snake(){
     this.snakelength = 1;
+    this.lastArrow = "";
     this.arrow = "r";
-    this.headPosition = "";
-    this.tailPosition = "";
-    this.grid = "";
+    this.headPosition = undefined;
+    this.tailPosition = undefined;
+    this.grid = undefined;
     this.gameOver = true;
     this.maxScore = 0;
     this.lastScore = 0;
-    this.interval = "";
+    this.interval = undefined;
     this.playedMove = true;
-
-    this.begin = function(){
-        this.gameOver = false;
-        this.grid[this.headPosition.x][this.headPosition.y] = -5;
-        this.interval = setInterval(this.play.bind(this), timeInterval,this.arrow);
-    }
     this.initialize = function(){
-        clearInterval(this.interval);
+        //clearInterval(this.interval);
         this.snakelength = 1;
         this.arrow = "r";
-        this.headPosition = {x: parseInt(size.x/2), y: parseInt(size.y/2)};
-        this.tailPosition = {x: parseInt(size.x/2), y: parseInt(size.y/2)};
+        this.headPosition = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
+        this.tailPosition = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
         this.grid = Array2d(size.x,size.y);
         this.grid = iniArray2d(this.grid,0);
+        //this.grid[this.headPosition.x][this.headPosition.y] = -5;
         this.gameOver = true;
 
         for(let i=0;i< food; i++)
@@ -72,6 +68,7 @@ function Snake(){
         else //if(this.grid[this.headPosition.x][this.headPosition.y] != -1)
             this.endGame();
         
+        this.lastArrow=this.arrow;
         //this.playedMove = true;
     }
     this.moveBody = function(){
@@ -113,17 +110,17 @@ function Snake(){
         }
     }
     this.changeDirection = function(ar){
-        if(ar == "r" && this.arrow == "l")return;
-        if(ar == "l" && this.arrow == "r")return;
-        if(ar == "u" && this.arrow == "d")return;
-        if(ar == "d" && this.arrow == "u")return;
+        if(ar == "r" && this.lastArrow == "l")return;
+        if(ar == "l" && this.lastArrow == "r")return;
+        if(ar == "u" && this.lastArrow == "d")return;
+        if(ar == "d" && this.lastArrow == "u")return;
 
         //if(!this.playedMove)return;
 
         this.arrow = ar;
         
         //this.playedMove = false;
-        this.play();
+        //this.play();
     }
     this.endGame = function(){
         this.gameOver = true;
@@ -133,18 +130,29 @@ function Snake(){
 }
 
 function SnakeGUI(){
-    this.mainSection = "";
-    this.canvas = "";
-    this.ctx = "";
+    this.mainSection = undefined;
+    this.canvas = undefined;
+    this.ctx = undefined;
     this.cellSize = 0;
     this.game = new Snake();
-    this.buttons = {r: "", l: "", u: "", d: "", reset: ""};
-    this.input = {speed: "" ,food:""};
-    this.scoreBoard = {highest: "", last: "", now: ""};
-    this.refresh = "";
+    this.buttons = {r: undefined, l: undefined, u: undefined, d: undefined, reset: undefined};
+    this.input = {speed: undefined ,food: undefined};
+    this.scoreBoard = {highest: undefined, last: undefined, now: undefined};
+    this.refresh = undefined;
+    this.step = 0;
 
     this.start = function(){
         this.creatElements();
+        
+        this.cellSize = this.canvas.height / size.y;
+        size.x = Math.floor(this.canvas.width / this.cellSize);
+        
+        food = Math.floor(size.x * size.y * foodPercentage);
+        this.input.food.max = Math.floor(size.x * size.y * 0.6);
+        if (food < 1)food = 1;
+        
+        this.ctx = this.canvas.getContext("2d");
+        
         this.clearCanvas();
         this.addEvents();
         this.reset();
@@ -169,12 +177,11 @@ function SnakeGUI(){
         this.input.food = htmlCreator("input", controlsSection, "","inputNumber");
         this.input.food.type = "number";
         this.input.food.min = "1";
-        this.input.food.max = parseInt(size.x * size.y * 0.6);
         this.input.food.value = food;
         this.input.food.title = food;
         htmlCreator("label", controlsSection, "", "", "Speed:");
-        this.input.speed = htmlCreator("input", controlsSection, "speedSlider","inputSlider");
-        this.input.speed.type = "range";
+        this.input.speed = htmlCreator("input", controlsSection, "","inputNumber");
+        this.input.speed.type = "number";
         this.input.speed.min = "1";
         this.input.speed.max = "20";
         this.input.speed.value = speed;
@@ -190,37 +197,40 @@ function SnakeGUI(){
         this.canvas.height = this.mainSection.offsetHeight ;
         this.canvas.width = this.mainSection.offsetWidth;
 
-        this.cellSize = this.canvas.height / size.y;
-        size.x = Math.floor(this.canvas.width / this.cellSize);
-        food = Math.floor(size.x * size.y * foodPercentage);
-        
-        this.ctx = this.canvas.getContext("2d");
     }
     this.addEvents = function(){
         var self = this;
-        this.buttons.r.addEventListener("click",function(){self.game.changeDirection("r");self.display();});
-        this.buttons.l.addEventListener("click",function(){self.game.changeDirection("l");self.display();});
-        this.buttons.u.addEventListener("click",function(){self.game.changeDirection("u");self.display();});
-        this.buttons.d.addEventListener("click",function(){self.game.changeDirection("d");self.display();});
+        this.buttons.r.addEventListener("click",function(){self.game.changeDirection("r");});
+        this.buttons.l.addEventListener("click",function(){self.game.changeDirection("l");});
+        this.buttons.u.addEventListener("click",function(){self.game.changeDirection("u");});
+        this.buttons.d.addEventListener("click",function(){self.game.changeDirection("d");});
         
         this.input.food.addEventListener("change",function(){
+            if(this.value > Math.floor(size.x * size.y * 0.6))
+                this.value = Math.floor(size.x * size.y * 0.6);
             this.title = this.value + "\nreset game to change food percentage";
-            foodPercentage = this.value/100;
+            food = this.value;
+            self.reset();
         });
-        this.input.food.addEventListener("click",function(){this.title = this.value;});
+        //this.input.food.addEventListener("click",function(){this.title = this.value;});
         this.input.speed.addEventListener("change",function(){
+            if(this.value > 20)
+                this.value = 20;
+            else if(this.value < 1)
+                this.value = 1;
             this.title = this.value + "\nreset game to change speed";
-            timeInterval = parseInt(1000/this.value);
+            timeInterval = Math.floor(1000/this.value);
+            self.reset();
         });
         this.input.speed.addEventListener("click",function(){this.title = this.value;});
         
         document.addEventListener("keydown",function(event){
             if(!event.repeat)
                 switch(event.code){
-                    case "ArrowRight":self.game.changeDirection("r");self.display();break;
-                    case "ArrowLeft" :self.game.changeDirection("l");self.display();break;
-                    case "ArrowUp"   :self.game.changeDirection("u");self.display();break;
-                    case "ArrowDown" :self.game.changeDirection("d");self.display();break;
+                    case "ArrowRight":self.game.changeDirection("r");break;
+                    case "ArrowLeft" :self.game.changeDirection("l");break;
+                    case "ArrowUp"   :self.game.changeDirection("u");break;
+                    case "ArrowDown" :self.game.changeDirection("d");break;
                     case "keyl" :self.game.logGrid();break;
                 }
         } );
@@ -228,18 +238,24 @@ function SnakeGUI(){
         this.buttons.reset.addEventListener("click",function(){
             if(this.innerHTML == "Reset"){
                 self.game.endGame();
-                self.display();
                 self.reset();
             }
             else{
+                self.game.gameOver = false;
                 this.innerHTML = "Reset";
-                self.game.begin();
-                self.display();
-                self.refresh = setInterval(self.display.bind(self),timeInterval);
+                requestAnimationFrame(self.display.bind(self));
             }
         });
     }
-    this.display = function(){
+    this.display = function(time){
+        if(17 * this.step > timeInterval){
+            this.game.play();
+            console.log(time , this.step , timeInterval);
+            this.step=0;
+        }
+        else{
+            this.step++;
+        }
         this.clearCanvas();
         for(let i=0;i<size.x;i++)
             for(let j=0;j<size.y;j++)
@@ -250,7 +266,7 @@ function SnakeGUI(){
                 else if(this.game.grid[i][j] == 0){
                 }
                 else{
-                    this.drawCell(i,j,"#45bb21");
+                    this.drawCell(i,j,"#45bb21",time);
                     /*switch(this.game.grid[i][j]){
                         case -1: this.cells[i][j].innerHTML = "&rarr;";break;
                         case -2: this.cells[i][j].innerHTML = "&larr;";break;
@@ -259,20 +275,22 @@ function SnakeGUI(){
                     }*/
                 }
         //this.cells[this.game.tailPosition.x][this.game.tailPosition.y].innerHTML = ".";
-        this.drawCell(this.game.headPosition.x,this.game.headPosition.y,"green");
+        this.drawCell(this.game.headPosition.x,this.game.headPosition.y,"green",time);
         //this.cells[this.game.headPosition.x][this.game.headPosition.y].innerHTML = "#";
         this.scoreBoard.now.innerHTML = this.game.snakelength * speed;//score = length * speed
-
+        
+        if(!this.game.gameOver)
+            requestAnimationFrame(this.display.bind(this));
         if(this.game.gameOver){
             alert("Game Over\n"+this.game.lastScore)
             this.reset();
-        }
+        }        
     }
     this.reset = function(){
-        clearInterval(this.refresh);
+        this.step = 0;
         this.game.initialize();
 
-        speed = parseInt(1000/timeInterval);//TI = 1000/speed
+        speed = Math.floor(1000/timeInterval);//TI = 1000/speed
         this.scoreBoard.highest.innerHTML = this.game.maxScore;
         this.scoreBoard.last.innerHTML = this.game.lastScore;
         this.scoreBoard.now.innerHTML = 0;
@@ -298,10 +316,12 @@ function SnakeGUI(){
         }
 
     }
-    this.drawCell = function(x,y,color){
+    this.drawCell = function(x,y,color,step){
         let c = this.cellSize;
         let space = (this.canvas.width - this.cellSize * size.x)/2;
+        
         this.ctx.fillStyle = color;
+        
         this.ctx.fillRect(space+x*c,y*c,c,c);
     }
 }
