@@ -24,7 +24,7 @@ canvas{
     display: block;
 }
 #scoreSec{
-    font-size: 2.5em;
+    font-size: 6vmin;
     font-weight: bold;
     text-align: center;
     display: grid;
@@ -35,21 +35,21 @@ canvas{
     grid-template: repeat(6 , 1fr) / repeat(4 , 1fr);
 }
 #controlsSec label{
-    font-size: 1.5em;
+    font-size: 5vmin;
     text-align: center;
     margin: auto;
 
     grid-column: 1 / 3;
 }
 .button{
-    font-size: 1.8em;
+    font-size: 6vmin
 }
 .inputNumber{
     width: 5vw;
     margin: 0.5vw;
     grid-column: 3 / 5;
 
-    font-size: 1.5em;
+    font-size: 5vmin;
 }
 #rightButton{
     grid-column: 3 / 5;

@@ -7,215 +7,206 @@ let foodPercentage = 1/100;                         //percentage of multiple foo
                                                      //is around 50% and the number will dimminsh
                                                      //with every turn
 let food = 1;   //food is auto calculated depending on foodPercentage
-var count=0;
+let count=0;
 
 
 function Snake(){
-    this.snakelength = 1;
-    this.lastArrow = "";
-    this.arrow = "r";
-    this.tailArrow = "r";
-    this.headPosition = undefined;
-    this.tailPosition = undefined;
-    this.grid = undefined;
-    this.gameOver = true;
-    this.maxScore = 0;
-    this.lastScore = 0;
-    this.interval = undefined;
-    this.playedMove = true;
-    this.initialize = function(){
-        //clearInterval(this.interval);
-        this.snakelength = 1;
-        this.arrow = "r";
-        this.headPosition = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
-        this.tailPosition = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
-        this.grid = Array2d(size.x,size.y);
-        this.grid = iniArray2d(this.grid,0);
-        this.grid[this.headPosition.x][this.headPosition.y] = -5;
-        this.gameOver = true;
+    //private vars
+    let snakelength = 1;
+    let grid = undefined;
+    let gameOver = true; 
+    const score = {max: 0, last:0 , now:0};
+    const pos = {head: undefined, tail: undefined};
+    const arrow = {head: "r" , last: undefined , tail: undefined}; 
+    //read only vars:
+    Object.defineProperties(this, {
+        "grid": {get: () => grid},
+        "score": {get: () => score},
+        "arrow": {get: () => arrow},
+        //write false to start game
+        "gameOver" : {
+            get: () => gameOver,
+            set: function(value){
+                if(!value)
+                    gameOver = false;
+            }
+        }
+    });
 
-        for(let i=0;i< food; i++)
-            this.generateFood();
-    }
-    this.play = function(){
-        let ar = this.arrow;
-        if(this.gameOver){
-            return;
-        }
-        //this.arrow = ar;
-        //fun(this.arrow);
-        
-        switch(ar){
-            case "r": this.grid[this.headPosition.x][this.headPosition.y] = -1;/**/this.headPosition.x++;break;
-            case "l": this.grid[this.headPosition.x][this.headPosition.y] = -2;/**/this.headPosition.x--;break;
-            case "u": this.grid[this.headPosition.x][this.headPosition.y] = -3;/**/this.headPosition.y--;break;
-            case "d": this.grid[this.headPosition.x][this.headPosition.y] = -4;/**/this.headPosition.y++;break;
-        }
-        this.headPosition.x = this.validX(this.headPosition.x);
-        this.headPosition.y = this.validY(this.headPosition.y);
-        
-        if(this.grid[this.headPosition.x][this.headPosition.y] == 0){
-            this.grid[this.headPosition.x][this.headPosition.y] = -5;
-            //fun("play\n"+this.headPosition.x+","+this.headPosition.y);
-            this.moveBody();
-        }
-        else if(this.grid[this.headPosition.x][this.headPosition.y] > 0){
-            this.grid[this.headPosition.x][this.headPosition.y] = -5;
-            //fun("play\n"+this.headPosition.x+","+this.headPosition.y);
-            this.snakelength++;
-            this.generateFood();
-        }
-        else{ //if(this.grid[this.headPosition.x][this.headPosition.y] != -1)
-            this.grid[this.headPosition.x][this.headPosition.y] = -5;
-            this.endGame();
-        }
-        this.lastArrow=this.arrow;
-        //this.playedMove = true;
-    }
-    this.moveBody = function(){
-        this.tailArrow = this.grid[this.tailPosition.x][this.tailPosition.y];
-        let ar  = this.tailArrow;
-        this.grid[this.tailPosition.x][this.tailPosition.y] = 0;
+
+    //private methods
+    const moveBody = function(){
+        let ar  = grid[pos.tail.x][pos.tail.y];
+        //arrow.head.tail;
+        grid[pos.tail.x][pos.tail.y] = 0;
 
         switch(ar){
-            case -1: this.tailPosition.x++;break;
-            case -2: this.tailPosition.x--;break;
-            case -3: this.tailPosition.y--;break;
-            case -4: this.tailPosition.y++;break;
+            case -1: pos.tail.x++;break;
+            case -2: pos.tail.x--;break;
+            case -3: pos.tail.y--;break;
+            case -4: pos.tail.y++;break;
             default: fun("mb\n"+ar);
         }
         
-        this.tailPosition.x = this.validX(this.tailPosition.x);
-        this.tailPosition.y = this.validY(this.tailPosition.y);
+        pos.tail.x = validX.bind(this)(pos.tail.x);
+        pos.tail.y = validY.bind(this)(pos.tail.y);
     }
-    this.validX = function(x){
+    const validX = function(x){
         return (x+size.x)%size.x;
     }
-    this.validY = function(y){
+    const validY = function(y){
         return (y+size.y)%size.y;
     }
-    this.generateFood = function(){
-        var x,y;
+    const generateFood = function(){
+        let x,y;
         do{
             x = Math.floor(Math.random()*size.x);
             y = Math.floor(Math.random()*size.y);
-        }while(this.grid[x][y] < 0);//overlapp multiple food
-        this.grid[x][y] = 1;
+        }while(grid[x][y] < 0);//overlapp multiple food
+        grid[x][y] = 1;
     }
-    this.logGrid = function(){
-        for(let i=0;i<size.x;i++){
-            for(let j=0;j<size.y;j++)
-                console.log(this.grid[i][j] + " ");
-            console.log("\n");
+    //public methods
+    this.initialize = function(){
+
+        snakelength = 1;
+        arrow.head = "r";
+        pos.head = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
+        pos.tail = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
+        grid = Array2d(size.x,size.y,0);
+        score.now = 0;
+
+        //console.log(typeof grid[0])
+        grid[pos.head.x][pos.head.y] = -5;
+        gameOver = true;
+
+        for(let i=0;i< food; i++)
+            generateFood.bind(this)();
+    }
+    this.play = function(){
+        let ar = arrow.head;
+        if(gameOver){
+            return;
         }
+        //arrow.head = ar;
+        //fun(arrow.head);
+        
+        switch(ar){
+            case "r": grid[pos.head.x][pos.head.y] = -1;/**/pos.head.x++;break;
+            case "l": grid[pos.head.x][pos.head.y] = -2;/**/pos.head.x--;break;
+            case "u": grid[pos.head.x][pos.head.y] = -3;/**/pos.head.y--;break;
+            case "d": grid[pos.head.x][pos.head.y] = -4;/**/pos.head.y++;break;
+        }
+        pos.head.x = validX.bind(this)(pos.head.x);
+        pos.head.y = validY.bind(this)(pos.head.y);
+        
+        if(grid[pos.head.x][pos.head.y] == 0){
+            grid[pos.head.x][pos.head.y] = -5;
+            //fun("play\n"+pos.head.x+","+pos.head.y);
+            moveBody.bind(this)();
+        }
+        else if(grid[pos.head.x][pos.head.y] > 0){
+            grid[pos.head.x][pos.head.y] = -5;
+            //fun("play\n"+pos.head.x+","+pos.head.y);
+            snakelength++;
+            score.now += speed;
+            generateFood.bind(this)();
+        }
+        else{ //if(grid[pos.head.x][pos.head.y] != -1)
+            grid[pos.head.x][pos.head.y] = -5;
+            this.endGame();
+        }
+        arrow.last=arrow.head;
+        //this.playedMove = true;
     }
     this.changeDirection = function(ar){
-        if(ar == "r" && this.lastArrow == "l")return;
-        if(ar == "l" && this.lastArrow == "r")return;
-        if(ar == "u" && this.lastArrow == "d")return;
-        if(ar == "d" && this.lastArrow == "u")return;
+        if(ar == "r" && arrow.last == "l")return;
+        if(ar == "l" && arrow.last == "r")return;
+        if(ar == "u" && arrow.last == "d")return;
+        if(ar == "d" && arrow.last == "u")return;
 
         //if(!this.playedMove)return;
 
-        this.arrow = ar;
+        arrow.head = ar;
         
         //this.playedMove = false;
-        //this.play();
+        this.play();
     }
     this.endGame = function(){
-        this.gameOver = true;
-        this.lastScore = this.snakelength * speed;
-        this.maxScore = Math.max(this.maxScore, this.lastScore);//score = length * speed
+        gameOver = true;
+        score.last = score.now;
+        score.max = Math.max(score.max, score.last);//score = length * speed
     }
 }
 
 function SnakeGUI(){
-    this.mainSection = undefined;
-    this.canvas = undefined;
-    this.ctx = undefined;
-    this.cellSize = 0;
+    //private vars
+    let mainSection, canvas, ctx,cellSize = 0;
+    const buttons = {r: undefined, l: undefined, u: undefined, d: undefined, reset: undefined};
+    const input = {speed: undefined ,food: undefined};
+    const scoreBoard = {highest: undefined, last: undefined, now: undefined};
+    //public vars
     this.game = new Snake();
-    this.buttons = {r: undefined, l: undefined, u: undefined, d: undefined, reset: undefined};
-    this.input = {speed: undefined ,food: undefined};
-    this.scoreBoard = {highest: undefined, last: undefined, now: undefined};
-    this.refresh = undefined;
     this.step = 0;
     this.totalSteps = 12;
     this.stepTime =16.5;
-
-    this.start = function(){
-        this.creatElements();
-        
-        this.cellSize = this.canvas.height / size.y;
-        size.x = Math.floor(this.canvas.width / this.cellSize);
-        
-        food = Math.floor(size.x * size.y * foodPercentage);
-        this.input.food.max = Math.floor(size.x * size.y * 0.6);
-        if (food < 1)food = 1;
-        
-        this.ctx = this.canvas.getContext("2d");
-        
-        this.clearCanvas();
-        this.addEvents();
-        this.reset();
-    }
-    this.creatElements = function(){
-        var body = document.getElementsByTagName("body")[0];
+    //private methods
+    const creatElements = function(){
+        let body = document.getElementsByTagName("body")[0];
         body.innerHTML = "";
 
-        var container = htmlCreator("div",body,"container","");
-        this.mainSection = htmlCreator("div",container,"mainSec","view");
-        var scoreSection = htmlCreator("div",container,"scoreSec","view");
-        var controlsSection = htmlCreator("div",container,"controlsSec","view");
+        let container = htmlCreator("div",body,"container","");
+        mainSection = htmlCreator("div",container,"mainSec","view");
+        let scoreSection = htmlCreator("div",container,"scoreSec","view");
+        let controlsSection = htmlCreator("div",container,"controlsSec","view");
 
         htmlCreator("div", scoreSection, "", "", "Highest Score");
-        this.scoreBoard.highest = htmlCreator("div", scoreSection);
+        scoreBoard.highest = htmlCreator("div", scoreSection);
         htmlCreator("div", scoreSection, "", "", "Last Score");
-        this.scoreBoard.last = htmlCreator("div", scoreSection);
+        scoreBoard.last = htmlCreator("div", scoreSection);
         htmlCreator("div", scoreSection, "", "", "Score");
-        this.scoreBoard.now = htmlCreator("div", scoreSection);
+        scoreBoard.now = htmlCreator("div", scoreSection);
 
         htmlCreator("label", controlsSection, "", "", "food:");
-        this.input.food = htmlCreator("input", controlsSection, "","inputNumber");
-        this.input.food.type = "number";
-        this.input.food.min = "1";
-        this.input.food.value = food;
-        this.input.food.title = food;
+        input.food = htmlCreator("input", controlsSection, "","inputNumber");
+        input.food.type = "number";
+        input.food.min = "1";
+        input.food.value = food;
+        input.food.title = food;
         htmlCreator("label", controlsSection, "", "", "Speed:");
-        this.input.speed = htmlCreator("input", controlsSection, "","inputNumber");
-        this.input.speed.type = "number";
-        this.input.speed.min = "1";
-        this.input.speed.max = "20";
-        this.input.speed.value = speed;
-        this.input.speed.title = speed;
+        input.speed = htmlCreator("input", controlsSection, "","inputNumber");
+        input.speed.type = "number";
+        input.speed.min = "1";
+        input.speed.max = "20";
+        input.speed.value = speed;
+        input.speed.title = speed;
         
-        this.buttons.u = htmlCreator("button", controlsSection, "upButton", "button", "&uarr;");
-        this.buttons.l = htmlCreator("button", controlsSection, "leftButton", "button", "&larr;");
-        this.buttons.r = htmlCreator("button", controlsSection, "rightButton", "button", "&rarr;");
-        this.buttons.d = htmlCreator("button", controlsSection, "downButton", "button", "&darr;");
-        this.buttons.reset = htmlCreator("button", controlsSection, "resetButton", "button", "Begin");
+        buttons.u = htmlCreator("button", controlsSection, "upButton", "button", "&uarr;");
+        buttons.l = htmlCreator("button", controlsSection, "leftButton", "button", "&larr;");
+        buttons.r = htmlCreator("button", controlsSection, "rightButton", "button", "&rarr;");
+        buttons.d = htmlCreator("button", controlsSection, "downButton", "button", "&darr;");
+        buttons.reset = htmlCreator("button", controlsSection, "resetButton", "button", "Begin");
         
-        this.canvas = htmlCreator("canvas" ,this.mainSection);
-        this.canvas.height = this.mainSection.offsetHeight ;
-        this.canvas.width = this.mainSection.offsetWidth;
+        canvas = htmlCreator("canvas" ,mainSection);
+        canvas.height = mainSection.offsetHeight ;
+        canvas.width = mainSection.offsetWidth;
 
     }
-    this.addEvents = function(){
-        var self = this;
-        this.buttons.r.addEventListener("click",function(){self.game.changeDirection("r");});
-        this.buttons.l.addEventListener("click",function(){self.game.changeDirection("l");});
-        this.buttons.u.addEventListener("click",function(){self.game.changeDirection("u");});
-        this.buttons.d.addEventListener("click",function(){self.game.changeDirection("d");});
+    const addEvents = function(){
+        let self = this;
+        buttons.r.addEventListener("click",function(){self.game.changeDirection("r");});
+        buttons.l.addEventListener("click",function(){self.game.changeDirection("l");});
+        buttons.u.addEventListener("click",function(){self.game.changeDirection("u");});
+        buttons.d.addEventListener("click",function(){self.game.changeDirection("d");});
         
-        this.input.food.addEventListener("change",function(){
+        input.food.addEventListener("change",function(){
             if(this.value > Math.floor(size.x * size.y * 0.6))
                 this.value = Math.floor(size.x * size.y * 0.6);
             this.title = this.value + "\nreset game to change food percentage";
             food = this.value;
             self.reset();
         });
-        //this.input.food.addEventListener("click",function(){this.title = this.value;});
-        this.input.speed.addEventListener("change",function(){
+        //input.food.addEventListener("click",function(){this.title = this.value;});
+        input.speed.addEventListener("change",function(){
             if(this.value > 20)
                 this.value = 20;
             else if(this.value < 1)
@@ -224,7 +215,7 @@ function SnakeGUI(){
             timeInterval = Math.floor(1000/this.value);
             self.reset();
         });
-        this.input.speed.addEventListener("click",function(){this.title = this.value;});
+        input.speed.addEventListener("click",function(){this.title = this.value;});
         
         document.addEventListener("keydown",function(event){
             if(!event.repeat)
@@ -237,7 +228,7 @@ function SnakeGUI(){
                 }
         } );
 
-        this.buttons.reset.addEventListener("click",function(){
+        buttons.reset.addEventListener("click",function(){
             if(this.innerHTML == "Reset"){
                 self.game.endGame();
                 self.reset();
@@ -249,105 +240,38 @@ function SnakeGUI(){
             }
         });
     }
-    this.display = function(time){
-        if(this.stepTime * this.step > timeInterval){
-            this.game.play();
-            //console.log(time , this.step , timeInterval);
-            this.totalSteps = this.step;
-            this.step = 0;
-        }
-        else{
-            console.log(this.step);
-            this.step++;
-        }
-        this.clearCanvas();
-        for(let i=0;i<size.x;i++)
-            for(let j=0;j<size.y;j++)
-                if(this.game.grid[i][j] == 1){
-                    this.drawCell(i,j,"red");
-                    console.log(i,j);
-                }
-                else if(this.game.grid[i][j] == -5){
-                    this.drawCell(i,j,"green","head" ,this.game.arrow);
-                }
-                else if (this.game.grid[i][j] != 0){
-                    this.drawCell(i,j,"#45bb21");
-                }
-        //this.cells[this.game.tailPosition.x][this.game.tailPosition.y].innerHTML = ".";
-        //this.cells[this.game.headPosition.x][this.game.headPosition.y].innerHTML = "#";
-        this.scoreBoard.now.innerHTML = this.game.snakelength * speed;//score = length * speed
-        
-        if(!this.game.gameOver)
-            requestAnimationFrame(this.display.bind(this));
-        if(this.game.gameOver){
-            alert("Game Over\n"+this.game.lastScore)
-            this.reset();
-        }        
-    }
-    this.reset = function(){
-        this.step = 0;
-        this.game.initialize();
-
-        speed = Math.floor(1000/timeInterval);//TI = 1000/speed
-        this.totalSteps = 
-
-        this.scoreBoard.highest.innerHTML = this.game.maxScore;
-        this.scoreBoard.last.innerHTML = this.game.lastScore;
-        this.scoreBoard.now.innerHTML = 0;
-
-        this.buttons.reset.innerHTML = "Begin";
-    }
-    this.clearCanvas = function(){
-        let space = (this.canvas.width - this.cellSize * size.x)/2;
-
-        this.ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-                
-        for(let i=0;i<size.y+1;i++){
-            this.ctx.beginPath();
-            this.ctx.moveTo(space+ 0, i * this.cellSize);
-            this.ctx.lineTo(space+ this.cellSize * size.x, i * this.cellSize);
-            this.ctx.stroke();
-        }
-        for(let i=0;i<size.x+1;i++){
-            this.ctx.beginPath();
-            this.ctx.moveTo(space+ i * this.cellSize,0);
-            this.ctx.lineTo(space+ i * this.cellSize,this.canvas.height);
-            this.ctx.stroke();
-        }
-
-    }
-    this.drawCell = function(x,y,color,type = "body" , ar =""){
-        let c = this.cellSize;
-        let space = (this.canvas.width - this.cellSize * size.x)/2;
-        this.ctx.fillStyle = color;
+    const drawCell = function(x,y,color,type = "body" , ar =""){
+        let c = cellSize;
+        let space = (canvas.width - cellSize * size.x)/2;
+        ctx.fillStyle = color;
         let d = this.step / this.totalSteps * c;
         let distX = 0,distY=0;
 
         if(type == "head"){
             switch(ar){
                 case "r": 
-                    this.ctx.fillRect(space+x*c , y*c , c/2 , c);
-                    this.ctx.beginPath();
-                    this.ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14/2*3,3.14/2);
-                    this.ctx.fill();
+                    ctx.fillRect(space+x*c , y*c , c/2 , c);
+                    ctx.beginPath();
+                    ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14/2*3,3.14/2);
+                    ctx.fill();
                 break;
                 case "l":
-                    this.ctx.fillRect(space+x*c +c/2, y*c , c/2 , c);
-                    this.ctx.beginPath();
-                    this.ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14/2,3.14/2*3);
-                    this.ctx.fill();
+                    ctx.fillRect(space+x*c +c/2, y*c , c/2 , c);
+                    ctx.beginPath();
+                    ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14/2,3.14/2*3);
+                    ctx.fill();
                 break;
                 case "u":
-                    this.ctx.fillRect(space+x*c , y*c +c/2, c , c/2);
-                    this.ctx.beginPath();
-                    this.ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14,0);
-                    this.ctx.fill();
+                    ctx.fillRect(space+x*c , y*c +c/2, c , c/2);
+                    ctx.beginPath();
+                    ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14,0);
+                    ctx.fill();
                 break;
                 case "d": 
-                this.ctx.fillRect(space+x*c , y*c , c , c/2);
-                this.ctx.beginPath();
-                this.ctx.arc(space+x*c +c/2, y*c+c/2 ,c/2 ,0,3.14);
-                this.ctx.fill();
+                ctx.fillRect(space+x*c , y*c , c , c/2);
+                ctx.beginPath();
+                ctx.arc(space+x*c +c/2, y*c+c/2 ,c/2 ,0,3.14);
+                ctx.fill();
                 break;
             }
         }
@@ -358,28 +282,108 @@ function SnakeGUI(){
                 case "u": distY = -d;break;
                 case "d": distY = d;break;
             }
-            this.ctx.fillRect(space+x*c - distX , y*c - distY , c , c);
+            ctx.fillRect(space+x*c - distX , y*c - distY , c , c);
         }
         else
-            this.ctx.fillRect(space+x*c , y*c , c , c);
+            ctx.fillRect(space+x*c , y*c , c , c);
         
+    }
+    const clearCanvas = function(){
+        let space = (canvas.width - cellSize * size.x)/2;
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+                
+        for(let i=0;i<size.y+1;i++){
+            ctx.beginPath();
+            ctx.moveTo(space+ 0, i * cellSize);
+            ctx.lineTo(space+ cellSize * size.x, i * cellSize);
+            ctx.stroke();
+        }
+        for(let i=0;i<size.x+1;i++){
+            ctx.beginPath();
+            ctx.moveTo(space+ i * cellSize,0);
+            ctx.lineTo(space+ i * cellSize,canvas.height);
+            ctx.stroke();
+        }
+
+    }
+    //public methods
+    this.start = function(){
+        creatElements.bind(this)();
+        
+        cellSize = canvas.height / size.y;
+        size.x = Math.floor(canvas.width / cellSize);
+        
+        food = Math.floor(size.x * size.y * foodPercentage);
+        input.food.max = Math.floor(size.x * size.y * 0.6);
+        if (food < 1)food = 1;
+        
+        ctx = canvas.getContext("2d");
+        
+        clearCanvas.bind(this)();
+        addEvents.bind(this)();
+        this.reset();
+    }
+    this.display = function(time){
+        if(this.stepTime * this.step > timeInterval){
+            this.game.play();
+            //console.log(time , this.step , timeInterval);
+            this.totalSteps = this.step;
+            this.step = 0;
+        }
+        else{
+            //console.log(this.step);
+            this.step++;
+        }
+        clearCanvas.bind(this)();
+        for(let i=0;i<size.x;i++)
+            for(let j=0;j<size.y;j++)
+                if(this.game.grid[i][j] == 1){
+                    drawCell.bind(this)(i,j,"red");
+                    //console.log(i,j);
+                }
+                else if(this.game.grid[i][j] == -5){
+                    drawCell.bind(this)(i,j,"green","head" ,this.game.arrow.head);
+                }
+                else if (this.game.grid[i][j] != 0){
+                    drawCell.bind(this)(i,j,"#45bb21");
+                }
+        scoreBoard.now.innerHTML = this.game.score.now;//score = length * speed
+        
+        if(!this.game.gameOver)
+            requestAnimationFrame(this.display.bind(this));
+        if(this.game.gameOver){
+            alert("Game Over\n"+this.game.score.last)
+            this.reset();
+        }        
+    }
+    this.reset = function(){
+        this.step = 0;
+        this.game.initialize();
+
+        speed = Math.floor(1000/timeInterval);//TI = 1000/speed
+        this.totalSteps = 
+
+        scoreBoard.highest.innerHTML = this.game.score.max;
+        scoreBoard.last.innerHTML = this.game.score.last;
+        scoreBoard.now.innerHTML = 0;
+
+        buttons.reset.innerHTML = "Begin";
     }
 }
 
-function Array2d(x,y){
-    var arr = [];
-    for(var i=0;i<x;i++)
-        arr[i] = new Array(y);
+function Array2d(x,y,value = undefined){
+    let arr = [];
+    for(let i=0;i<x;i++){
+        arr[i] = [];
+        for(let j=0;j<y;j++)
+            arr[i][j]=value;
+        //console.log(arr[i]);
+    }
     return arr;
 }
-function iniArray2d(arr2d,value){
-    for(var i=0;i<arr2d.length;i++)
-        for(var j=0;j<arr2d[0].length;j++)
-            arr2d[i][j]=value;
-    return arr2d;
-}
 function htmlCreator(tag,parent,id="",clss="",inHTML=""){
-    var t = document.createElement(tag);
+    let t = document.createElement(tag);
     parent.appendChild(t);
     t.id = id;
     t.className = clss;
