@@ -1,8 +1,8 @@
 let timeInterval = 200;
 let speed = 5;   //auto calculated apon reload. speed = 1000/timeInterval
 let dynamicMove = false; //true to enable dynamic movement
-const size = {x: undefined, y:5};//x = 1.75*y (approx for my screen) it is auto calculated
-
+const size = {x: undefined, y: undefined};//x = 1.75*y (approx for my screen) it is auto calculated
+let shortSize = 5; //size is calculated based on this
 let foodPercentage = 1/100;                         //percentage of multiple food but they 
                                                      //may overlap so the actual max percentage
                                                      //is around 50% and the number will dimminsh
@@ -11,14 +11,15 @@ let food = 1;   //food is auto calculated depending on foodPercentage
 let count=0;
 
 
-function Snake(){
+function Snake(sizeX,sizeY){
     //private vars
     let snakelength = 1;
     let grid = undefined;
     let gameOver = true; 
     const score = {max: 0, last:0 , now:0};
     const pos = {head: undefined, tail: undefined};
-    const arrow = {head: "r" , last: undefined , tail: undefined}; 
+    const arrow = {head: "r" , last: undefined , tail: undefined};
+    const size = {x: sizeX , y: sizeY};
     //read only vars:
     Object.defineProperties(this, {
         "grid": {get: () => grid},
@@ -130,7 +131,7 @@ function Snake(){
         arrow.head = ar;
         
         //this.playedMove = false;
-        //this.play();
+        this.play();
     }
     this.endGame = function(){
         gameOver = true;
@@ -145,8 +146,9 @@ function SnakeGUI(){
     const buttons = {r: undefined, l: undefined, u: undefined, d: undefined, reset: undefined};
     const input = {speed: undefined ,food: undefined};
     const scoreBoard = {highest: undefined, last: undefined, now: undefined};
+    const space = {x:0 ,y:0};
     //public vars
-    this.game = new Snake();
+    this.game = undefined;
     this.step = 0;
     this.totalSteps = 12;
     this.stepTime =16.5;
@@ -243,18 +245,17 @@ function SnakeGUI(){
     }
     const drawCell = function(x,y,color,type = "body" , ar =""){
         let c = cellSize;
-        let space = (canvas.width - cellSize * size.x)/2;
         ctx.fillStyle = color;
         let d = this.step / this.totalSteps * c;
 
         if(type == "head" && dynamicMove){
-            drawHead.bind(this)(space+x*c, y*c, d, ar);
+            drawHead.bind(this)(space.x + x*c, space.y + y*c, d, ar);
         }
         else if(type == "tail" && dynamicMove){
-            drawTail.bind(this)(space+x*c, y*c, d, ar);
+            drawTail.bind(this)(space.x + x*c, space.y + y*c, d, ar);
         }
         else
-            ctx.fillRect(space+x*c , y*c , c , c);
+            ctx.fillRect(space.x + x*c , space.y + y*c , c , c);
         
     }
     const drawHead = function(startX,startY,dist,ar){
@@ -328,20 +329,18 @@ function SnakeGUI(){
         //ctx.fill();
     }
     const clearCanvas = function(){
-        let space = (canvas.width - cellSize * size.x)/2;
-
         ctx.clearRect(0,0,canvas.width,canvas.height);
                 
         for(let i=0;i<size.y+1;i++){
             ctx.beginPath();
-            ctx.moveTo(space+ 0, i * cellSize);
-            ctx.lineTo(space+ cellSize * size.x, i * cellSize);
+            ctx.moveTo(space.x + 0, space.y + i * cellSize);
+            ctx.lineTo(space.x + cellSize * size.x, space.y + i * cellSize);
             ctx.stroke();
         }
         for(let i=0;i<size.x+1;i++){
             ctx.beginPath();
-            ctx.moveTo(space+ i * cellSize,0);
-            ctx.lineTo(space+ i * cellSize,canvas.height);
+            ctx.moveTo(space.x + i * cellSize, space.y + 0);
+            ctx.lineTo(space.x + i * cellSize, space.y + cellSize * size.y);
             ctx.stroke();
         }
 
@@ -349,16 +348,27 @@ function SnakeGUI(){
     //public methods
     this.start = function(){
         creatElements.bind(this)();
-        
-        cellSize = canvas.height / size.y;
-        size.x = Math.floor(canvas.width / cellSize);
-        
+        ctx = canvas.getContext("2d");
+
+        if(canvas.width > canvas.height){
+            cellSize = canvas.height / shortSize;
+            size.y = shortSize;
+            size.x = Math.floor(canvas.width / cellSize);
+            space.x = (canvas.width - cellSize * size.x)/2;
+            space.y = 0;
+        }
+        else {
+            cellSize = canvas.width / shortSize;
+            size.x = shortSize;
+            size.y = Math.floor(canvas.height / cellSize);
+            space.x = 0;
+            space.y = (canvas.height - cellSize * size.y)/2;
+        }
         food = Math.floor(size.x * size.y * foodPercentage);
         input.food.max = Math.floor(size.x * size.y * 0.6);
         if (food < 1)food = 1;
         
-        ctx = canvas.getContext("2d");
-        
+        this.game = new Snake(size.x , size.y)
         clearCanvas.bind(this)();
         addEvents.bind(this)();
         this.reset();

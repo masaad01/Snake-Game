@@ -27,8 +27,8 @@ canvas{
     font-size: 6vmin;
     font-weight: bold;
     text-align: center;
-    display: grid;
-    grid-template-rows: repeat(6 , 1fr);
+    display: flex;
+    flex-direction: column;
 }
 #controlsSec{
     display: grid;
