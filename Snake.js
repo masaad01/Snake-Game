@@ -1,6 +1,6 @@
 let timeInterval = 200;
 let speed = 5;   //auto calculated apon reload. speed = 1000/timeInterval
-let dynamicMove = false;
+let dynamicMove = false; //true to enable dynamic movement
 const size = {x: undefined, y:5};//x = 1.75*y (approx for my screen) it is auto calculated
 
 let foodPercentage = 1/100;                         //percentage of multiple food but they 
