@@ -1,5 +1,6 @@
 let timeInterval = 200;
 let speed = 5;   //auto calculated apon reload. speed = 1000/timeInterval
+let dynamicMove = false; //true to enable dynamic movement
 const size = {x: undefined, y:5};//x = 1.75*y (approx for my screen) it is auto calculated
 
 let foodPercentage = 1/100;                         //percentage of multiple food but they 
@@ -22,6 +23,7 @@ function Snake(){
     Object.defineProperties(this, {
         "grid": {get: () => grid},
         "score": {get: () => score},
+        "pos": {get: () => pos},
         "arrow": {get: () => arrow},
         //write false to start game
         "gameOver" : {
@@ -37,7 +39,7 @@ function Snake(){
     //private methods
     const moveBody = function(){
         let ar  = grid[pos.tail.x][pos.tail.y];
-        //arrow.head.tail;
+        arrow.tail = ar;
         grid[pos.tail.x][pos.tail.y] = 0;
 
         switch(ar){
@@ -75,7 +77,6 @@ function Snake(){
         grid = Array2d(size.x,size.y,0);
         score.now = 0;
 
-        //console.log(typeof grid[0])
         grid[pos.head.x][pos.head.y] = -5;
         gameOver = true;
 
@@ -129,7 +130,7 @@ function Snake(){
         arrow.head = ar;
         
         //this.playedMove = false;
-        this.play();
+        //this.play();
     }
     this.endGame = function(){
         gameOver = true;
@@ -245,48 +246,86 @@ function SnakeGUI(){
         let space = (canvas.width - cellSize * size.x)/2;
         ctx.fillStyle = color;
         let d = this.step / this.totalSteps * c;
-        let distX = 0,distY=0;
 
-        if(type == "head"){
-            switch(ar){
-                case "r": 
-                    ctx.fillRect(space+x*c , y*c , c/2 , c);
-                    ctx.beginPath();
-                    ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14/2*3,3.14/2);
-                    ctx.fill();
-                break;
-                case "l":
-                    ctx.fillRect(space+x*c +c/2, y*c , c/2 , c);
-                    ctx.beginPath();
-                    ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14/2,3.14/2*3);
-                    ctx.fill();
-                break;
-                case "u":
-                    ctx.fillRect(space+x*c , y*c +c/2, c , c/2);
-                    ctx.beginPath();
-                    ctx.arc(space+x*c +c/2, y*c+c/2,c/2,3.14,0);
-                    ctx.fill();
-                break;
-                case "d": 
-                ctx.fillRect(space+x*c , y*c , c , c/2);
-                ctx.beginPath();
-                ctx.arc(space+x*c +c/2, y*c+c/2 ,c/2 ,0,3.14);
-                ctx.fill();
-                break;
-            }
+        if(type == "head" && dynamicMove){
+            drawHead.bind(this)(space+x*c, y*c, d, ar);
         }
-        else if(type == "tail"){
-            switch(ar){
-                case "r": distX = d;break;
-                case "l": distX = -d;break;
-                case "u": distY = -d;break;
-                case "d": distY = d;break;
-            }
-            ctx.fillRect(space+x*c - distX , y*c - distY , c , c);
+        else if(type == "tail" && dynamicMove){
+            drawTail.bind(this)(space+x*c, y*c, d, ar);
         }
         else
             ctx.fillRect(space+x*c , y*c , c , c);
         
+    }
+    const drawHead = function(startX,startY,dist,ar){
+        let c = cellSize;
+        let x=0, y=0, w=0, h=0;
+        switch(ar){
+            case "r":
+                w = c //+ dist;
+                h = c;
+                x = startX + dist - c;
+                y = startY;
+            break;
+            case "l":
+                w = c //+ dist;
+                h = c;
+                x = startX - dist + c;
+                y = startY;
+            break;
+            case "u":
+                w = c;
+                h = c //+ dist;
+                x = startX;
+                y = startY - dist + c;
+            break;
+            case "d":
+                w = c;
+                h = c //+ dist;
+                x = startX;
+                y = startY +dist - c;
+            break;
+        }
+        
+        ctx.fillRect(x , y , w , h);
+        //ctx.beginPath();
+        //ctx.arc(space+x*c +c/2, y*c+c/2 ,c/2 ,0,3.14);
+        //ctx.fill();
+    }
+    const drawTail= function(startX,startY,dist,ar){
+        let c = cellSize;
+        let x=0, y=0, w=0, h=0;
+        switch(ar){
+            case -1:
+                w = c - dist;
+                h = c;
+                x = startX + dist //- c;
+                y = startY;
+            break;
+            case -2:
+                w = c - dist;
+                h = c;
+                x = startX - dist //+ c;
+                y = startY;
+            break;
+            case -3:
+                w = c;
+                h = c - dist;
+                x = startX;
+                y = startY - dist //+ c;
+            break;
+            case -4:
+                w = c;
+                h = c - dist;
+                x = startX;
+                y = startY + dist //- c;
+            break;
+        }
+        
+        ctx.fillRect(x , y , w , h);
+        //ctx.beginPath();
+        //ctx.arc(space+x*c +c/2, y*c+c/2 ,c/2 ,0,3.14);
+        //ctx.fill();
     }
     const clearCanvas = function(){
         let space = (canvas.width - cellSize * size.x)/2;
@@ -327,12 +366,10 @@ function SnakeGUI(){
     this.display = function(time){
         if(this.stepTime * this.step > timeInterval){
             this.game.play();
-            //console.log(time , this.step , timeInterval);
             this.totalSteps = this.step;
             this.step = 0;
         }
         else{
-            //console.log(this.step);
             this.step++;
         }
         clearCanvas.bind(this)();
@@ -340,16 +377,17 @@ function SnakeGUI(){
             for(let j=0;j<size.y;j++)
                 if(this.game.grid[i][j] == 1){
                     drawCell.bind(this)(i,j,"red");
-                    //console.log(i,j);
                 }
-                else if(this.game.grid[i][j] == -5){
-                    drawCell.bind(this)(i,j,"green","head" ,this.game.arrow.head);
+                else if(this.game.grid[i][j] == -5 || i == this.game.pos.tail.x && j == this.game.pos.tail.y){
+                    //nothing for now
                 }
-                else if (this.game.grid[i][j] != 0){
+                else if (this.game.grid[i][j] < 0){
                     drawCell.bind(this)(i,j,"#45bb21");
                 }
         scoreBoard.now.innerHTML = this.game.score.now;//score = length * speed
         
+        drawCell.bind(this)(this.game.pos.tail.x,this.game.pos.tail.y,"#45bb21","tail" ,this.game.arrow.tail);
+        drawCell.bind(this)(this.game.pos.head.x,this.game.pos.head.y,"green","head" ,this.game.arrow.head);
         if(!this.game.gameOver)
             requestAnimationFrame(this.display.bind(this));
         if(this.game.gameOver){
@@ -378,7 +416,6 @@ function Array2d(x,y,value = undefined){
         arr[i] = [];
         for(let j=0;j<y;j++)
             arr[i][j]=value;
-        //console.log(arr[i]);
     }
     return arr;
 }
