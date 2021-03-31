@@ -102,8 +102,9 @@ function Snake(sizeX,sizeY){
         do{
             x = Math.floor(Math.random()*size.x);
             y = Math.floor(Math.random()*size.y);
-        }while(grid[x][y] < 0);//overlapp multiple food
-        grid[x][y] = 1;
+        }while(grid[x][y] < 0 && snakelength < size.x * size.y);//overlapp multiple food
+        if(snakelength < size.x * size.y)
+            grid[x][y] = 1;
     }
     //public methods
     this.initialize = function(){
@@ -176,7 +177,7 @@ function SnakeGUI(){
     this.stepTime =16.5;
     //private methods
     const creatElements = function(){
-        let body = document.getElementsByTagName("body")[0];
+        let body = document.body;
         body.innerHTML = "";
 
         let container = htmlCreator("div",body,"container","");
@@ -223,6 +224,10 @@ function SnakeGUI(){
         buttons.u.addEventListener("click",function(){self.game.changeDirection("u");});
         buttons.d.addEventListener("click",function(){self.game.changeDirection("d");});
         
+        window.addEventListener("resize", function(){
+            window.location.reload();
+        });
+
         input.food.addEventListener("change",function(){
             if(this.value > Math.floor(size.x * size.y * 0.6))
                 this.value = Math.floor(size.x * size.y * 0.6);
@@ -253,7 +258,22 @@ function SnakeGUI(){
                     case "ArrowDown" :self.game.changeDirection("d");break;
                     case "keyl" :self.game.logGrid();break;
                 }
-        } );
+        });
+        {
+            let x1=0,x2=0,y1=0,y2=0;
+            document.addEventListener("touchmove",function(event){
+                if(x1 == 0)
+                    x1 = event.touches[0].clientX;
+                else
+                    x2 = event.touches[0].clientX;
+                if(y1 == 0)
+                    y1 = event.touches[0].clientY;
+                else
+                    y2 = event.touches[0].clientY; 
+            });
+            swipe(x1,x2,y1,y2);
+            x1=0;x2=0;y1=0;y2=0;
+        }
 
         buttons.reset.addEventListener("click",function(){
             if(this.innerHTML == "Reset"){
@@ -388,6 +408,8 @@ function SnakeGUI(){
             space.x = 0;
             space.y = (canvas.height - cellSize * size.y)/2;
         }
+        if(isNaN(size.x) || isNaN(size.y))
+            throw new Error("grid size can not be NaN");
         food = Math.floor(size.x * size.y * foodPercentage);
         input.food.max = Math.floor(size.x * size.y * 0.6);
         if (food < 1)food = 1;
@@ -464,4 +486,19 @@ function htmlCreator(tag,parent,id="",clss="",inHTML=""){
 }
 function fun(c=""){
     alert(c +"\n"+ count++);
+}
+function swipe(x1,x2,y1,y2){
+    let dx = x2-x1;
+    let dy = y2-y1;
+
+    if(Math.abs(dx)>Math.abs(dy))
+        if(dx > 0)
+            return "r";
+        else   
+            return "l";
+    else
+        if(dx > 0)
+            return "d";
+        else   
+            return "u";
 }
