@@ -2,7 +2,7 @@ let timeInterval = 200;
 let speed = 5;   //auto calculated apon reload. speed = 1000/timeInterval
 let dynamicMove = false; //true to enable dynamic movement
 const size = {x: undefined, y: undefined};//x = 1.75*y (approx for my screen) it is auto calculated
-let shortSize = 5; //size is calculated based on this
+let shortSize = 6; //size is calculated based on this
 let foodPercentage = 1/100;                         //percentage of multiple food but they 
                                                      //may overlap so the actual max percentage
                                                      //is around 50% and the number will dimminsh
@@ -18,14 +18,51 @@ function Snake(sizeX,sizeY){
     let gameOver = true; 
     const score = {max: 0, last:0 , now:0};
     const pos = {head: undefined, tail: undefined};
-    const arrow = {head: "r" , last: undefined , tail: undefined};
     const size = {x: sizeX , y: sizeY};
+    const arrow = {
+        head: "r",
+        next: [],
+        tail: undefined,
+        push: (v) =>{
+            if(arrow.next.length < 2)
+                arrow.next.push(v);
+        },
+        pull: ()=>{
+            //console.log("head: ",arrow.head,"next: ",arrow.next);
+            let v = arrow.head;
+            do{
+                arrow.head = arrow.next.shift();
+            }while(arrow.oppositeDir(arrow.head,v));
+
+            if(arrow.head == undefined)
+                arrow.head=v;
+            return v;
+        },
+        ini: () =>{
+            arrow.head = "r";
+            arrow.next = ["r"];
+        },
+        oppositeDir: (v, h=arrow.head) =>{
+            return (
+                (v == "r" && h == "l")||
+                (v == "l" && h == "r")||
+                (v == "u" && h == "d")||
+                (v == "d" && h == "u")
+            );
+        }
+    };
     //read only vars:
     Object.defineProperties(this, {
         "grid": {get: () => grid},
         "score": {get: () => score},
         "pos": {get: () => pos},
-        "arrow": {get: () => arrow},
+        "arrow": {get: () => {
+            return {
+                head: arrow.head,
+                tail: arrow.tail,
+                next: arrow.next
+            };
+        }},
         //write false to start game
         "gameOver" : {
             get: () => gameOver,
@@ -72,7 +109,7 @@ function Snake(sizeX,sizeY){
     this.initialize = function(){
 
         snakelength = 1;
-        arrow.head = "r";
+        arrow.ini();
         pos.head = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
         pos.tail = {x: Math.floor(size.x/2), y: Math.floor(size.y/2)};
         grid = Array2d(size.x,size.y,0);
@@ -85,12 +122,10 @@ function Snake(sizeX,sizeY){
             generateFood.bind(this)();
     }
     this.play = function(){
-        let ar = arrow.head;
+        let ar = arrow.pull();
         if(gameOver){
             return;
         }
-        //arrow.head = ar;
-        //fun(arrow.head);
         
         switch(ar){
             case "r": grid[pos.head.x][pos.head.y] = -1;/**/pos.head.x++;break;
@@ -103,35 +138,22 @@ function Snake(sizeX,sizeY){
         
         if(grid[pos.head.x][pos.head.y] == 0){
             grid[pos.head.x][pos.head.y] = -5;
-            //fun("play\n"+pos.head.x+","+pos.head.y);
             moveBody.bind(this)();
         }
         else if(grid[pos.head.x][pos.head.y] > 0){
             grid[pos.head.x][pos.head.y] = -5;
-            //fun("play\n"+pos.head.x+","+pos.head.y);
             snakelength++;
             score.now += speed;
             generateFood.bind(this)();
         }
-        else{ //if(grid[pos.head.x][pos.head.y] != -1)
+        else {
             grid[pos.head.x][pos.head.y] = -5;
             this.endGame();
         }
-        arrow.last=arrow.head;
-        //this.playedMove = true;
     }
     this.changeDirection = function(ar){
-        if(ar == "r" && arrow.last == "l")return;
-        if(ar == "l" && arrow.last == "r")return;
-        if(ar == "u" && arrow.last == "d")return;
-        if(ar == "d" && arrow.last == "u")return;
-
-        //if(!this.playedMove)return;
-
-        arrow.head = ar;
-        
-        //this.playedMove = false;
-        this.play();
+        arrow.push(ar);
+        //this.play();
     }
     this.endGame = function(){
         gameOver = true;
@@ -206,6 +228,7 @@ function SnakeGUI(){
                 this.value = Math.floor(size.x * size.y * 0.6);
             this.title = this.value + "\nreset game to change food percentage";
             food = this.value;
+            self.game.endGame();
             self.reset();
         });
         //input.food.addEventListener("click",function(){this.title = this.value;});
@@ -216,6 +239,7 @@ function SnakeGUI(){
                 this.value = 1;
             this.title = this.value + "\nreset game to change speed";
             timeInterval = Math.floor(1000/this.value);
+            self.game.endGame();
             self.reset();
         });
         input.speed.addEventListener("click",function(){this.title = this.value;});
