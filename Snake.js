@@ -261,7 +261,7 @@ function SnakeGUI(){
         });
         {
             let x1=0,x2=0,y1=0,y2=0;
-            document.addEventListener("touchmove",function(event){
+            canvas.addEventListener("touchmove",function(event){
                 if(x1 == 0)
                     x1 = event.touches[0].clientX;
                 else
