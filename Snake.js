@@ -223,10 +223,7 @@ function SnakeGUI(){
         buttons.l.addEventListener("click",function(){self.game.changeDirection("l");});
         buttons.u.addEventListener("click",function(){self.game.changeDirection("u");});
         buttons.d.addEventListener("click",function(){self.game.changeDirection("d");});
-        
-        window.addEventListener("resize", function(){
-            window.location.reload();
-        });
+
 
         input.food.addEventListener("change",function(){
             if(this.value > Math.floor(size.x * size.y * 0.6))
@@ -269,10 +266,25 @@ function SnakeGUI(){
                 if(y1 == 0)
                     y1 = event.touches[0].clientY;
                 else
-                    y2 = event.touches[0].clientY; 
+                    y2 = event.touches[0].clientY;
             });
-            swipe(x1,x2,y1,y2);
-            x1=0;x2=0;y1=0;y2=0;
+            canvas.addEventListener("touchend",function(){
+                if(x1!=0 && x2!=0 && y1!=0 && y2!=0){
+                    let dx = x2-x1;
+                    let dy = y2-y1;
+                    if(Math.abs(dx)>Math.abs(dy))
+                        if(dx > 0)
+                            self.game.changeDirection("r");
+                        else   
+                            self.game.changeDirection("l");
+                    else
+                        if(dy > 0)
+                            self.game.changeDirection("d");
+                        else   
+                            self.game.changeDirection("u");
+                    x1=0;x2=0;y1=0;y2=0;
+                }
+            });
         }
 
         buttons.reset.addEventListener("click",function(){
@@ -486,19 +498,4 @@ function htmlCreator(tag,parent,id="",clss="",inHTML=""){
 }
 function fun(c=""){
     alert(c +"\n"+ count++);
-}
-function swipe(x1,x2,y1,y2){
-    let dx = x2-x1;
-    let dy = y2-y1;
-
-    if(Math.abs(dx)>Math.abs(dy))
-        if(dx > 0)
-            return "r";
-        else   
-            return "l";
-    else
-        if(dx > 0)
-            return "d";
-        else   
-            return "u";
 }
