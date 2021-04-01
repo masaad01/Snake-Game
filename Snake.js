@@ -174,7 +174,7 @@ function SnakeGUI(){
     this.game = undefined;
     this.step = 0;
     this.totalSteps = 12;
-    this.stepTime =16.5;
+    this.stepTime = 16.5;
     //private methods
     const creatElements = function(){
         let body = document.body;
@@ -256,7 +256,7 @@ function SnakeGUI(){
                     case "keyl" :self.game.logGrid();break;
                 }
         });
-        {
+        {               //touch events
             let x1=0,x2=0,y1=0,y2=0;
             canvas.addEventListener("touchmove",function(event){
                 if(x1 == 0)
@@ -458,7 +458,7 @@ function SnakeGUI(){
         drawCell.bind(this)(this.game.pos.head.x,this.game.pos.head.y,"green","head" ,this.game.arrow.head);
         if(!this.game.gameOver)
             requestAnimationFrame(this.display.bind(this));
-        if(this.game.gameOver){
+        else {
             alert("Game Over\n"+this.game.score.last)
             this.reset();
         }        
@@ -468,7 +468,6 @@ function SnakeGUI(){
         this.game.initialize();
 
         speed = Math.floor(1000/timeInterval);//TI = 1000/speed
-        this.totalSteps = 
 
         scoreBoard.highest.innerHTML = this.game.score.max;
         scoreBoard.last.innerHTML = this.game.score.last;
